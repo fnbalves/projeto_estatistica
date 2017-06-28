@@ -33,3 +33,25 @@ print(paste('Media distancia (km)', toString(mean_distances)))
 print(paste('Desvio distancia (km)', toString(std_distances)))
 print(paste('Distancia maxima (km)', toString(max_distance)))
 print(paste('Distancia minima (km)', toString(min_distance)))
+
+source('separate_samples.R')
+
+size_motos <- dim(motorcycle_data)[1]
+size_cars <- dim(car_data)[1]
+
+num_less_100_motos <- 1:size_motos
+num_less_100_cars <- 1:size_cars
+
+for(i in 1:size_motos){
+  current_long <- as.numeric(motorcycle_data[i,1])
+  current_lat <- as.numeric(motorcycle_data[i,2])
+  num_less <- get_num_less_than(current_lat, current_long, 0.300, equipements)
+  num_less_100_motos[i] <- num_less
+}
+
+for(i in 1:size_cars){
+  current_long <- as.numeric(car_data[i,1])
+  current_lat <- as.numeric(car_data[i,2])
+  num_less <- get_num_less_than(current_lat, current_long, 0.300, equipements)
+  num_less_100_cars[i] <- num_less
+}
