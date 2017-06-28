@@ -21,10 +21,10 @@ get_closest_equipement <- function(lat, long, equipements){
   equipements_latitudes <- as.numeric(equipements[, 8])
   equipements_longitudes <- as.numeric(equipements[, 9])
   
-  size_vec = length(equipements_latitudes)
-  min_distance = 10000000000000000000
-  lat_for_min = 0
-  long_for_min = 0
+  size_vec <- length(equipements_latitudes)
+  min_distance <- 10000000000000000000
+  lat_for_min <- 0
+  long_for_min <- 0
   
   for(i in 1:size_vec){
     current_latitude <- equipements_latitudes[i]
@@ -48,4 +48,28 @@ get_closest_equipement <- function(lat, long, equipements){
   
   #retorna min_dist, lat, long
   return(c(min_distance, lat_for_min, long_for_min))
+}
+
+get_num_less_than <- function(lat, long, threshold, equipements){
+  size_vec <- length(equipements)
+  num_less <- 0
+  
+  equipements_latitudes <- as.numeric(equipements[, 8])
+  equipements_longitudes <- as.numeric(equipements[, 9])
+  
+  for(i in 1:size_vec){
+    current_latitude <- equipements_latitudes[i]
+    current_longitude <- equipements_longitudes[i]
+    
+    new_distance <- get_distance(lat, long, current_latitude, current_longitude)
+    
+    if(is.na(new_distance)){
+      next
+    }
+    
+    if(new_distance < threshold){
+      num_less <- num_less + 1
+    }
+  }
+  return(num_less)
 }
