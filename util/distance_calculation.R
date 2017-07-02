@@ -73,3 +73,26 @@ get_num_less_than <- function(lat, long, threshold, equipements){
   }
   return(num_less)
 }
+
+get_num_accidents_nearby <- function(lat, long, accidents, threshold){
+  size_vec <- length(accidents)
+  
+  accidents_longitudes <- as.numeric(accidents[, 1])
+  accidents_latitudes <- as.numeric(accidents[, 2])
+  
+  for(i in 1:size_vec){
+    current_latitude <- accidents_latitudes[i]
+    current_longitude <- accidents_longitudes[i]
+    
+    new_distance <- get_distance(lat, long, current_latitude, current_longitude)
+    
+    if(is.na(new_distance)){
+      next
+    }
+    
+    if(new_distance < threshold){
+      num_less <- num_less + 1
+    }
+  }
+  return(num_less)
+}
