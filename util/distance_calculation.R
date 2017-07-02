@@ -1,8 +1,5 @@
 #From https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
 
-equipements_latitude_index <- 8
-equipements_longitude_index <- 9
-
 get_distance <- function(lat1, lon1, lat2, lon2){
   R <- 6371; #Radius of the earth in km
   dLat <- deg2rad(lat2-lat1);

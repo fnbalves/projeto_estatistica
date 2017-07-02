@@ -1,8 +1,11 @@
 source('util/csv_read.R')
 source('util/distance_calculation.R')
 
+equipements_latitude_index <- 1
+equipements_longitude_index <- 2
+
 #config
-test_to_run <- 'num_equipements' #'num_equipements' #'hist_dist' #'worst_equipement'
+test_to_run <- 'worst_equipement' #'num_equipements' #'hist_dist' #'worst_equipement'
 
 accidents <- load_data('data/acidentes-2016.csv')    
 
@@ -26,6 +29,26 @@ size_misc_equipements <- dim(misc_equipements)[1]
 size_accidents <- dim(accidents)[1]
 distances <- 1:size_accidents
 
+all_fisc <- getLatLongData(fisc_equipements,8,7)
+all_cttu <- getLatLongData(cttu_equipements,4,3)
+all_misc <- getLatLongData(misc_equipements,3,4)
+
+all_data <- c()
+
+for(i in 1:size_fisc_equipements){
+  all_data <- c(all_data,all_fisc[i,])
+}
+for(i in 1:size_cttu_equipements){
+  all_data <- c(all_data,all_cttu[i,])
+}
+for(i in 1:size_misc_equipements){
+  all_data <- c(all_data,all_misc[i,])
+}
+
+all_data <- matrix(all_data,ncol = 2, byrow = TRUE)
+
+size_equipements <- dim(all_data)[1]
+
 make_dist_statistics <- function(){
   accidents_long <- as.numeric(accidents[, 1])
   accidents_lat <- as.numeric(accidents[, 2])
@@ -35,7 +58,7 @@ make_dist_statistics <- function(){
     
     current_long <- accidents_long[i]
     current_lat <- accidents_lat[i]
-    closest_distance <- get_closest_equipement(current_lat, current_long, equipements)[1]
+    closest_distance <- get_closest_equipement(current_lat, current_long, all_data)[1]
     distances[i] <- closest_distance
   }
   
@@ -50,31 +73,13 @@ make_equipements_nearby_statistics <- function(threshold){
   
   num_less_motos <- 1:size_motos
   num_less_others <- 1:size_others
-  
-  all_fisc <- getLatLongData(fisc_equipements,8,7)
-  all_cttu <- getLatLongData(cttu_equipements,4,3)
-  all_misc <- getLatLongData(misc_equipements,3,4)
-  
-  all_data <- c()
-  
-  for(i in 1:size_fisc_equipements){
-    all_data <- c(all_data,all_fisc[i,])
-  }
-  for(i in 1:size_cttu_equipements){
-    all_data <- c(all_data,all_cttu[i,])
-  }
-  for(i in 1:size_misc_equipements){
-    all_data <- c(all_data,all_misc[i,])
-  }
-  
-  all_data <- matrix(all_data,ncol = 2, byrow = TRUE) 
 
-    for(i in 1:size_motos){
+  for(i in 1:size_motos){
       print_progress(i, size_motos, "[sinais proximos de acidentes c/ moto]")
       
       current_long <- as.numeric(motorcycle_data[i,1])
       current_lat <- as.numeric(motorcycle_data[i,2])
-      num_less <- get_num_less_than(current_lat, current_long, threshold, equipements)
+      num_less <- get_num_less_than(current_lat, current_long, threshold, all_data)
       num_less_motos[i] <- num_less
     }
   
@@ -83,7 +88,7 @@ make_equipements_nearby_statistics <- function(threshold){
     
     current_long <- as.numeric(others_data[i,1])
     current_lat <- as.numeric(others_data[i,2])
-    num_less <- get_num_less_than(current_lat, current_long, threshold, equipements)
+    num_less <- get_num_less_than(current_lat, current_long, threshold, all_data)
     num_less_others[i] <- num_less
   }
   
@@ -97,8 +102,8 @@ discover_worst_equipement <- function(accident_data, with_order){
   
   num_accidents <- matrix(, nrow=size_equipements, ncol = 3)
   
-  equipements_latitudes <- as.numeric(equipements[, 8])
-  equipements_longitudes <- as.numeric(equipements[, 9])
+  equipements_latitudes <- as.numeric(all_data[, equipements_latitude_index])
+  equipements_longitudes <- as.numeric(all_data[, equipements_longitude_index])
   
   best_max <- -1
   best_longitude <- -1
@@ -110,7 +115,7 @@ discover_worst_equipement <- function(accident_data, with_order){
     current_lat <- equipements_latitudes[i]
     current_long <- equipements_longitudes[i]
     
-    num_less <- get_num_accidents_nearby(current_lat, current_long, accident_data, 0.1)
+    num_less <- get_num_accidents_nearby(current_lat, current_long, accident_data, 0.2)
     num_accidents[i, ] <- c(num_less, current_lat, current_long)
     
     if(num_less > best_max){
@@ -141,13 +146,13 @@ if(test_to_run == 'hist_dist'){
   cat('\n', paste('Distancia minima (km)', toString(min_distance)))
   
   total <- length(distances)
-  num_less_than <- sum(distances < 0.1)
+  num_less_than <- sum(distances < 0.2)
   perc_less_than <- num_less_than/total
   vari <- sqrt(perc_less_than*(1 - perc_less_than)/total)
   lower_val <- perc_less_than - 1.96*vari
   upper_val <- perc_less_than + 1.96*vari
   
-  str_to_print <- 'IC - Porcentagem de acidentes a menos que 500 metros de um sinal ['
+  str_to_print <- 'IC - Porcentagem de acidentes a menos que 2000 metros de um sinal ['
   str_to_print <- paste(str_to_print, toString(lower_val))
   str_to_print <- paste(str_to_print, ',')
   str_to_print <- paste(str_to_print, toString(upper_val))
@@ -172,7 +177,7 @@ if(test_to_run == 'worst_equipement'){
   cat('\n', 'Pior sem motos')
   cat('\n', results_others[1,])
   dev.new()
-  hist(results_others[,1], breaks=c(0,1,2,3,4), main="histograma - Numero de acidentes com vitimas (carros apenas) nas redondezas do sinal de transito")
+  hist(results_others[,1], main="histograma - Numero de acidentes com vitimas (carros apenas) nas redondezas do sinal de transito")
   
   cat('\n', 'Motos apenas---------')
   results_motos_raw <- discover_worst_equipement(motorcycle_data, with_order = FALSE)
@@ -180,8 +185,8 @@ if(test_to_run == 'worst_equipement'){
   cat('\n', 'Pior para motos')
   cat('\n', results_motos[1,])
   dev.new()
-  hist(results_motos[,1], breaks=c(0,1,2,3,4,5,6), main="histograma - Numero de acidentes com vitimas (motos apenas) nas redondezas do sinal de transito")
-  num_equipements <- dim(equipements)[1]
+  hist(results_motos[,1], main="histograma - Numero de acidentes com vitimas (motos apenas) nas redondezas do sinal de transito")
+  num_equipements <- dim(all_data)[1]
   joint_results <- matrix(, nrow=num_equipements, ncol=2)
   for(i in 1:num_equipements){
     joint_results[i, ] <- c(results_cars_raw[i][1], results_motos_raw[i][1])
@@ -190,27 +195,27 @@ if(test_to_run == 'worst_equipement'){
   correlation <- cor(joint_results[, 1], joint_results[, 2], method='pearson')
   cat('\n', paste('Correlacao (pearson) acidentes com carro e com motos', toString(correlation)))
   #join categories
-  #for(i in 1:num_equipements){
-  #  if(joint_results[i , 1] >= 11){
-  #    joint_results[i, 1] = 10
-  #  }
-  #  
-  #  if(joint_results[i , 2] >= 13){
-  #    joint_results[i, 2] = 12
-  #  }
-  #}
+  for(i in 1:num_equipements){
+    if(joint_results[i , 1] >= 1){
+      joint_results[i, 1] = 1
+    }
+    
+    if(joint_results[i , 2] >= 1){
+      joint_results[i, 2] = 1
+    }
+  }
   res <- chisq.test(joint_results[, 1], joint_results[, 2])
   print(res)
 }
 
 if(test_to_run == 'num_equipements'){
-  results <- make_equipements_nearby_statistics(0.5)
+  results <- make_equipements_nearby_statistics(0.2)
   num_less_others <- results$others
   num_less_motos <- results$motos
   dev.new()
-  hist(num_less_others, main='histograma - Numero de sinais a menos de 500 metros de distancia (sem motos)')
+  hist(num_less_others, main='histograma - Numero de sinais a menos de 200 metros de distancia (sem motos)')
   dev.new()
-  hist(num_less_motos, main='histograma - Numero de sinais a menos de 500 metros de distancia (motos)')
+  hist(num_less_motos, main='histograma - Numero de sinais a menos de 200 metros de distancia (motos)')
   cat('\n', 'wilcoxon test')
   result_test <- wilcox.test(num_less_others, num_less_motos, paired=FALSE, alternative = "greater")
   print(result_test)

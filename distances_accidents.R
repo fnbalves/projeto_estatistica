@@ -92,7 +92,7 @@ discover_worst_equipement <- function(accident_data, with_order){
     current_lat <- equipements_latitudes[i]
     current_long <- equipements_longitudes[i]
     
-    num_less <- get_num_accidents_nearby(current_lat, current_long, accident_data, 0.1)
+    num_less <- get_num_accidents_nearby(current_lat, current_long, accident_data, 0.2)
     num_accidents[i, ] <- c(num_less, current_lat, current_long)
     
     if(num_less > best_max){
@@ -123,13 +123,13 @@ if(test_to_run == 'hist_dist'){
   cat('\n', paste('Distancia minima (km)', toString(min_distance)))
   
   total <- length(distances)
-  num_less_than <- sum(distances < 0.1)
+  num_less_than <- sum(distances < 0.2)
   perc_less_than <- num_less_than/total
   vari <- sqrt(perc_less_than*(1 - perc_less_than)/total)
   lower_val <- perc_less_than - 1.96*vari
   upper_val <- perc_less_than + 1.96*vari
   
-  str_to_print <- 'IC - Porcentagem de acidentes a menos que 500 metros de um sinal ['
+  str_to_print <- 'IC - Porcentagem de acidentes a menos que 200 metros de um sinal ['
   str_to_print <- paste(str_to_print, toString(lower_val))
   str_to_print <- paste(str_to_print, ',')
   str_to_print <- paste(str_to_print, toString(upper_val))
@@ -154,7 +154,7 @@ if(test_to_run == 'worst_equipement'){
   cat('\n', 'Pior sem motos')
   cat('\n', results_others[1,])
   dev.new()
-  hist(results_others[,1], breaks=c(0,1,2,3,4), main="histograma - Numero de acidentes com vitimas (carros apenas) nas redondezas do sinal de transito")
+  hist(results_others[,1], main="histograma - Numero de acidentes com vitimas (carros apenas) nas redondezas do sinal de transito")
   
   cat('\n', 'Motos apenas---------')
   results_motos_raw <- discover_worst_equipement(motorcycle_data, with_order = FALSE)
@@ -162,7 +162,7 @@ if(test_to_run == 'worst_equipement'){
   cat('\n', 'Pior para motos')
   cat('\n', results_motos[1,])
   dev.new()
-  hist(results_motos[,1], breaks=c(0,1,2,3,4,5,6), main="histograma - Numero de acidentes com vitimas (motos apenas) nas redondezas do sinal de transito")
+  hist(results_motos[,1], main="histograma - Numero de acidentes com vitimas (motos apenas) nas redondezas do sinal de transito")
   num_equipements <- dim(equipements)[1]
   joint_results <- matrix(, nrow=num_equipements, ncol=2)
   for(i in 1:num_equipements){
@@ -187,13 +187,13 @@ if(test_to_run == 'worst_equipement'){
 }
 
 if(test_to_run == 'num_equipements'){
-  results <- make_equipements_nearby_statistics(0.5)
+  results <- make_equipements_nearby_statistics(0.2)
   num_less_others <- results$others
   num_less_motos <- results$motos
   dev.new()
-  hist(num_less_others, main='histograma - Numero de sinais a menos de 500 metros de distancia (sem motos)')
+  hist(num_less_others, main='histograma - Numero de sinais a menos de 100 metros de distancia (sem motos)')
   dev.new()
-  hist(num_less_motos, main='histograma - Numero de sinais a menos de 500 metros de distancia (motos)')
+  hist(num_less_motos, main='histograma - Numero de sinais a menos de 100 metros de distancia (motos)')
   cat('\n', 'wilcoxon test')
   result_test <- wilcox.test(num_less_others, num_less_motos, paired=FALSE, alternative = "greater")
   print(result_test)
