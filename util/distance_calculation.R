@@ -51,7 +51,7 @@ get_closest_equipement <- function(lat, long, equipements){
 }
 
 get_num_less_than <- function(lat, long, threshold, equipements){
-  size_vec <- length(equipements)
+  size_vec <- dim(equipements)[1]
   num_less <- 0
   
   equipements_latitudes <- as.numeric(equipements[, 8])
@@ -75,7 +75,8 @@ get_num_less_than <- function(lat, long, threshold, equipements){
 }
 
 get_num_accidents_nearby <- function(lat, long, accidents, threshold){
-  size_vec <- length(accidents)
+  size_vec <- dim(accidents)[1]
+  num_less <- 0
   
   accidents_longitudes <- as.numeric(accidents[, 1])
   accidents_latitudes <- as.numeric(accidents[, 2])

@@ -1,10 +1,10 @@
 
 # get user's home directory
-home = setwd(Sys.getenv("HOME"));
+#home = setwd(Sys.getenv("HOME"));
 
-fpath = file.path(home, "estatistica", "acidentes-2015.csv");
+#fpath = file.path(home, "estatistica", "acidentes-2015.csv");
 
-data <- read.csv(fpath, sep=";", header = TRUE)
+data <- read.csv('data/acidentes-2015.csv', sep=";", header = TRUE)
 
 accidents <- as.matrix(data)
 
@@ -49,6 +49,17 @@ print(paste("Num motorcycles - ", toString(num_motorcycles)))
 print(paste("Num other accidents - ", toString(num_others)))
 
 motorcycle_percent = num_motorcycles/size_accidents;
+vari <- sqrt(motorcycle_percent*(1 - motorcycle_percent)/size_accidents)
+lower_b <- motorcycle_percent - 1.96*vari
+upper_b <- motorcycle_percent + 1.96*vari
+
+str_to_print <- "IC - porcentagem de motorcycles ["
+str_to_print <- paste(str_to_print, toString(lower_b))
+str_to_print <- paste(str_to_print, ',')
+str_to_print <- paste(str_to_print, upper_b)
+str_to_print <- paste(str_to_print, ']')
+
+print(str_to_print)
 print(paste("Percent motorcycles - ", toString(motorcycle_percent)))
 
 others_percent = num_others/size_accidents;
