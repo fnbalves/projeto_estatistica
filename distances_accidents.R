@@ -2,7 +2,7 @@ source('util/csv_read.R')
 source('util/distance_calculation.R')
 
 #config
-test_to_run <- 'num_equipements' #'num_equipements' #'hist_dist' #'worst_equipement'
+test_to_run <- 'worst_equipement' #'num_equipements' #'hist_dist' #'worst_equipement'
 
 accidents <- load_data('data/acidentes-2015_reordenado.csv')    
 
@@ -11,9 +11,9 @@ equipements <- load_data('data/semaforos.csv')
 print_progress <- function(i, size, title){
   str_to_print <- title
   str_to_print <- paste(str_to_print, toString(i))
-  str_to_print = paste(str_to_print, "de")
-  str_to_print = paste(str_to_print, toString(size))
-  str_to_print = paste(str_to_print, "-------")
+  str_to_print <- paste(str_to_print, "de")
+  str_to_print <- paste(str_to_print, toString(size))
+  str_to_print <- paste(str_to_print, "-------")
   cat("\r", str_to_print)
 }
 
@@ -68,7 +68,11 @@ make_equipements_nearby_statistics <- function(threshold){
   return(list(cars=num_less_cars, motos=num_less_motos))
 }
 
-discover_worst_equipement <- function(accident_data){
+discover_worst_equipement <- function(accident_data, with_order){
+  if(missing(with_order)){
+    with_order <- TRUE
+  }
+  
   num_accidents <- matrix(, nrow=size_equipements, ncol = 3)
   
   equipements_latitudes <- as.numeric(equipements[, 8])
@@ -93,7 +97,12 @@ discover_worst_equipement <- function(accident_data){
       best_longitude <- current_long
     }
   }
-  return(num_accidents[order(num_accidents[,1], decreasing = TRUE),])
+  
+  if(with_order){
+    return(num_accidents[order(num_accidents[,1], decreasing = TRUE),])
+  }else{
+    return(num_accidents)
+  }
 }
 
 if(test_to_run == 'hist_dist'){
@@ -104,15 +113,24 @@ if(test_to_run == 'hist_dist'){
   max_distance <- max(distances)
   min_distance <- min(distances)
   
-  cat('\n', paste('Media distancia (km)', toString(mean_distances)))
-  cat('\n', paste('Desvio distancia (km)', toString(std_distances)))
+  cat('\n', paste('Media amostral distancia (km)', toString(mean_distances)))
+  cat('\n', paste('Desvio amostral distancia (km)', toString(std_distances)))
   cat('\n', paste('Distancia maxima (km)', toString(max_distance)))
   cat('\n', paste('Distancia minima (km)', toString(min_distance)))
   
   total <- length(distances)
   num_less_than <- sum(distances < 0.5)
-  perc_less_than <- num_less_than*100.0/total
-  cat('\n', paste('Porcentagem de acidentes a menos que 500 metros de um sinal', toString(perc_less_than)))
+  perc_less_than <- num_less_than/total
+  vari <- sqrt(perc_less_than*(1 - perc_less_than)/total)
+  lower_val <- perc_less_than - 1.96*vari
+  upper_val <- perc_less_than + 1.96*vari
+  
+  str_to_print <- 'IC - Porcentagem de acidentes a menos que 500 metros de um sinal ['
+  str_to_print <- paste(str_to_print, toString(lower_val))
+  str_to_print <- paste(str_to_print, ',')
+  str_to_print <- paste(str_to_print, toString(upper_val))
+  str_to_print <- paste(str_to_print, ']')
+  cat('\n', str_to_print)
 }
 
 if(test_to_run == 'worst_equipement'){
@@ -126,18 +144,41 @@ if(test_to_run == 'worst_equipement'){
   source('separate_samples.R')
   
   cat('\n', 'Carros apenas----------')
-  results_cars <- discover_worst_equipement(car_data)
+  results_cars_raw <- discover_worst_equipement(car_data, with_order = FALSE)
+  result_cars <- results_cars_raw[order(results_cars_raw[,1], decreasing = TRUE),]
   cat('\n', 'Pior para carros')
   cat('\n', results_cars[1,])
   dev.new()
-  hist(results_cars[,1], breaks=c(9,10,11,12), main="histograma - numero de acidentes com vitimas (carros apenas) nas redondezas do sinal de transito")
+  hist(results_cars[,1], breaks=c(9,10,11,12), main="histograma - Numero de acidentes com vitimas (carros apenas) nas redondezas do sinal de transito")
   
   cat('\n', 'Motos apenas---------')
-  results_motos <- discover_worst_equipement(motorcycle_data)
+  results_motos_raw <- discover_worst_equipement(motorcycle_data, with_order = FALSE)
+  results_motos <- results_motos_raw[order(results_motos_raw[,1], decreasing = TRUE),]
   cat('\n', 'Pior para motos')
   cat('\n', results_motos[1,])
   dev.new()
-  hist(results_motos[,1], main="histograma - numero de acidentes com vitimas (motos apenas) nas redondezas do sinal de transito")
+  hist(results_motos[,1], main="histograma - Numero de acidentes com vitimas (motos apenas) nas redondezas do sinal de transito")
+  
+  num_equipements <- dim(equipements)[1]
+  joint_results <- matrix(, nrow=num_equipements, ncol=2)
+  for(i in 1:num_equipements){
+    joint_results[i, ] <- c(results_cars_raw[i][1], results_motos_raw[i][1])
+  }
+  
+  correlation <- cor(joint_results[, 1], joint_results[, 2], method='pearson')
+  cat('\n', paste('Correlacao (pearson) acidentes com carro e com motos', toString(correlation)))
+  #join categories
+  for(i in 1:num_equipements){
+    if(joint_results[i , 1] >= 11){
+      joint_results[i, 1] = 10
+    }
+    
+    if(joint_results[i , 2] >= 13){
+      joint_results[i, 2] = 12
+    }
+  }
+  res <- chisq.test(joint_results[, 1], joint_results[, 2])
+  print(res)
 }
 
 if(test_to_run == 'num_equipements'){
@@ -145,9 +186,9 @@ if(test_to_run == 'num_equipements'){
   num_less_cars <- results$cars
   num_less_motos <- results$motos
   dev.new()
-  hist(num_less_cars, main='histograma - numero de sinais a menos de 500 metros de distancia (carros)')
+  hist(num_less_cars, main='histograma - Numero de sinais a menos de 500 metros de distancia (carros)')
   dev.new()
-  hist(num_less_motos, main='histograma - numero de sinais a menos de 500 metros de distancia (motos)')
+  hist(num_less_motos, main='histograma - Numero de sinais a menos de 500 metros de distancia (motos)')
   cat('\n', 'wilcoxon test')
   result_test <- wilcox.test(num_less_motos, num_less_cars, alternative = "greater", paired=FALSE, conf.level=0.95)
   print(result_test)
