@@ -4,7 +4,7 @@ source('util/distance_calculation.R')
 #config
 test_to_run <- 'num_equipements' #'num_equipements' #'hist_dist' #'worst_equipement'
 
-accidents <- load_data('data/acidentes-2016.csv')    
+accidents <- load_data('data/acidentes-2015_reordenado.csv')    
 
 equipements <- load_data('data/semaforos.csv')
 
@@ -13,7 +13,7 @@ print_progress <- function(i, size, title){
   str_to_print <- paste(str_to_print, toString(i))
   str_to_print = paste(str_to_print, "de")
   str_to_print = paste(str_to_print, toString(size))
-  
+  str_to_print = paste(str_to_print, "-------")
   cat("\r", str_to_print)
 }
 
@@ -121,7 +121,7 @@ if(test_to_run == 'worst_equipement'){
   cat('\n', 'Pior sinal no geral')
   cat('\n', results_all[1,])
   dev.new()
-  hist(results[,1], main="histograma - Numero de acidentes com vitimas nas redondezas do sinal de transito")
+  hist(results_all[,1], main="histograma - Numero de acidentes com vitimas nas redondezas do sinal de transito")
   
   source('separate_samples.R')
   
@@ -137,7 +137,7 @@ if(test_to_run == 'worst_equipement'){
   cat('\n', 'Pior para motos')
   cat('\n', results_motos[1,])
   dev.new()
-  hist(results_motos[,1], breaks=c(9,10,11,12,13,14,15), main="histograma - numero de acidentes com vitimas (motos apenas) nas redondezas do sinal de transito")
+  hist(results_motos[,1], main="histograma - numero de acidentes com vitimas (motos apenas) nas redondezas do sinal de transito")
 }
 
 if(test_to_run == 'num_equipements'){
