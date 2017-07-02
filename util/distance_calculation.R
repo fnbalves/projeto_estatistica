@@ -1,5 +1,8 @@
 #From https://stackoverflow.com/questions/27928/calculate-distance-between-two-latitude-longitude-points-haversine-formula
 
+equipements_latitude_index <- 8
+equipements_longitude_index <- 9
+
 get_distance <- function(lat1, lon1, lat2, lon2){
   R <- 6371; #Radius of the earth in km
   dLat <- deg2rad(lat2-lat1);
@@ -18,8 +21,8 @@ deg2rad <- function(deg){
 }
 
 get_closest_equipement <- function(lat, long, equipements){
-  equipements_latitudes <- as.numeric(equipements[, 8])
-  equipements_longitudes <- as.numeric(equipements[, 9])
+  equipements_latitudes <- as.numeric(equipements[, equipements_latitude_index])
+  equipements_longitudes <- as.numeric(equipements[, equipements_longitude_index])
   
   size_vec <- length(equipements_latitudes)
   min_distance <- 10000000000000000000
@@ -54,8 +57,8 @@ get_num_less_than <- function(lat, long, threshold, equipements){
   size_vec <- dim(equipements)[1]
   num_less <- 0
   
-  equipements_latitudes <- as.numeric(equipements[, 8])
-  equipements_longitudes <- as.numeric(equipements[, 9])
+  equipements_latitudes <- as.numeric(equipements[, equipements_latitude_index])
+  equipements_longitudes <- as.numeric(equipements[, equipements_longitude_index])
   
   for(i in 1:size_vec){
     current_latitude <- equipements_latitudes[i]

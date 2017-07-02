@@ -1,12 +1,17 @@
 source('util/csv_read.R')
 source('util/distance_calculation.R')
 
+equipements_latitude_index <- 8
+equipements_longitude_index <- 9
+
 #config
 test_to_run <- 'worst_equipement' #'num_equipements' #'hist_dist' #'worst_equipement'
 
-accidents <- load_data('data/acidentes-2016.csv')    
+accidents <- load_data('data/acidentes-2016.csv')
 
-equipements <- load_data('data/semaforos.csv')
+equipements <- load_data('data/semaforos.csv')#load_data('data/equipamentos-de-monitoramento-e-ficalizacao.csv')
+
+motorcycle_data <- matrix(motorcycle_data, ncol=3, byrow=TRUE)
 
 print_progress <- function(i, size, title){
   str_to_print <- title
@@ -46,7 +51,6 @@ make_equipements_nearby_statistics <- function(threshold){
   num_less_motos <- 1:size_motos
   num_less_others <- 1:size_others
   
-  all_data <- 
   for(i in 1:size_motos){
     print_progress(i, size_motos, "[sinais proximos de acidentes c/ moto]")
     
@@ -75,8 +79,8 @@ discover_worst_equipement <- function(accident_data, with_order){
   
   num_accidents <- matrix(, nrow=size_equipements, ncol = 3)
   
-  equipements_latitudes <- as.numeric(equipements[, 8])
-  equipements_longitudes <- as.numeric(equipements[, 9])
+  equipements_latitudes <- as.numeric(equipements[, equipements_latitude_index])
+  equipements_longitudes <- as.numeric(equipements[, equipements_longitude_index])
   
   best_max <- -1
   best_longitude <- -1
@@ -168,15 +172,16 @@ if(test_to_run == 'worst_equipement'){
   correlation <- cor(joint_results[, 1], joint_results[, 2], method='pearson')
   cat('\n', paste('Correlacao (pearson) acidentes com carro e com motos', toString(correlation)))
   #join categories
-  #for(i in 1:num_equipements){
-  #  if(joint_results[i , 1] >= 11){
-  #    joint_results[i, 1] = 10
-  #  }
-  #  
-  #  if(joint_results[i , 2] >= 13){
-  #    joint_results[i, 2] = 12
-  #  }
-  #}
+  for(i in 1:num_equipements){
+    if(joint_results[i , 1] > 0){
+      joint_results[i, 1] = 1
+    }
+    
+    if(joint_results[i , 2] > 0){
+      joint_results[i, 2] = 1
+    }
+  }
+  
   res <- chisq.test(joint_results[, 1], joint_results[, 2])
   print(res)
 }
