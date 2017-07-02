@@ -2,7 +2,7 @@ source('util/csv_read.R')
 
 print_summary <- FALSE
 
-accidents <- load_data('data/acidentes-2016.csv')
+accidents <- load_data('data/acidentes-2015_reordenado.csv')
 accident_types <- accidents[, 11]
 ascii_accident_types <- iconv(accident_types, from="UTF-8", to="ASCII", "")
 
