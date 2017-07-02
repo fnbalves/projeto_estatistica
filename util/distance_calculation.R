@@ -97,3 +97,16 @@ get_num_accidents_nearby <- function(lat, long, accidents, threshold){
   }
   return(num_less)
 }
+
+
+getLatLongData <- function(original_table, latColumn, longColumn){
+  
+  size <- dim(original_table)[1]
+  
+  lat_list <- original_table[,latColumn]
+  long_list <- original_table[,longColumn]
+  
+  mat <- matrix(c(lat_list,long_list),nrow=length(lat_list))
+  
+  return(mat)
+}
